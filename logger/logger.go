@@ -6,7 +6,7 @@ import (
 )
 
 func init() {
-	color.ForceOpenColor()
+	//color.ForceOpenColor()
 }
 
 func DisableColor() {

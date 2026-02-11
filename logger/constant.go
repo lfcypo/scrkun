@@ -3,7 +3,7 @@ package logger
 import "github.com/gookit/color"
 
 const (
-	NameMaxLength     = 22
+	NameMaxLength     = 10
 	PositionMaxLength = 20
 	TimeFormat        = "2006-01-02 15:04:05"
 )

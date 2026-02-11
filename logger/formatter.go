@@ -38,8 +38,8 @@ func (f *Formatter) preRender() {
 		middleIndex := int(math.Ceil(float64(NameMaxLength) / 2))
 		name = name[0:middleIndex] + "..." + name[nameLength+3-middleIndex:nameLength]
 	}
-	colorRGB := generateNameColorRGB(f.Name)
-	f.preRenderingName = colorRGB.Sprint(name)
+	//colorRGB := generateNameColorRGB(f.Name)
+	f.preRenderingName = name
 	f.preGenerateBlankBetweenNameAndPosition = generateBlankBetweenNameAndPosition(len(name))
 }
 
