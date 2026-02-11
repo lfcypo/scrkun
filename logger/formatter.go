@@ -47,6 +47,8 @@ func (f *Formatter) Format(entry *logrus.Entry) ([]byte, error) {
 	buf := bufferPool.Get().(*bytes.Buffer)
 	timeStr := entry.Time.Format(TimeFormat)
 
+	message := strings.ReplaceAll(entry.Message, "\n", " ")
+
 	logoBackgroundColorRGB, logoFontColorRGB, messageColorRGB := generateLogoBackgroundColorAndLogoFontColorAndMessageColorRGB(entry.Level)
 
 	buf.WriteString(timeStr)
@@ -55,7 +57,7 @@ func (f *Formatter) Format(entry *logrus.Entry) ([]byte, error) {
 	buf.WriteString(f.preGenerateBlankBetweenNameAndPosition)
 	buf.WriteString(logoBackgroundColorRGB.Sprintf(" %s", logoFontColorRGB.Sprint(strings.ToUpper(entry.Level.String()[:1]))) + logoBackgroundColorRGB.Sprint(" "))
 	buf.WriteString("  ")
-	buf.WriteString(messageColorRGB.Sprint(entry.Message))
+	buf.WriteString(messageColorRGB.Sprint(message))
 	if len(entry.Data) != 0 {
 		buf.WriteString("  ")
 		raw := messageColorRGB.Values()
