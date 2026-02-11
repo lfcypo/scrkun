@@ -15,7 +15,7 @@ var encodeLogger = logger.New("Capture Encoder")
 func EncodeJPEGFile(buffer io.Writer, img *image.RGBA, options *jpeg.Options) {
 	err := jpeg.Encode(buffer, img, options)
 	if err != nil {
-		encodeLogger.Errorf("Failed to encode image to JPEG: %v", err)
+		encodeLogger.Errorf("JPEG 编码失败: %v", err)
 	}
 }
 

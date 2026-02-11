@@ -25,13 +25,14 @@ var notifiers = []Notifier{
 
 func Notify(dts []*usagedt.Usage, machineName string) {
 	msg := GenerateMessage(dts, machineName)
+	log.Infof("推送消息: %s", msg)
 	for _, notifier := range notifiers {
 		err := notifier.Notify(msg)
 		if err != nil {
 			if errors.Is(err, Disable) {
 				continue
 			}
-			log.Warnf("Failed to notify: %v", err)
+			log.Warnf("发送消息推送失败 请检查网络与配置文件是否正确: %v", err)
 		}
 	}
 }

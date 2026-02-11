@@ -9,7 +9,7 @@ var displayLogger = logger.New("Display")
 
 func GetDisplayCount() int {
 	count := screenshot.NumActiveDisplays()
-	displayLogger.Infof("Displays count: %d", count)
+	displayLogger.Infof("共有 %d 块显示器", count)
 	return count
 }
 

@@ -43,7 +43,7 @@ func main() {
 		time.Sleep(time.Second * sleep)
 		timeDiff := time.Since(lastDetectedAt)
 		if timeDiff < delay {
-			log.Infof("Within the sleep time, there are %.2f seconds before the next detection", delay.Seconds()-timeDiff.Seconds())
+			log.Infof("已发出报警 距离下一次检测还有 %.2f 秒", delay.Seconds()-timeDiff.Seconds())
 			continue
 		}
 
@@ -52,21 +52,23 @@ func main() {
 			if errors.Is(err, capture.Skip) {
 				continue
 			}
-			log.Errorf("Capture error: %v", err)
+			log.Errorf("屏幕截图失败: %v", err)
 		}
-		log.Infof("Capture success: %s", img.Bounds())
+		log.Infof("屏幕截图成功: %s", img.Bounds())
 
 		usages := usagedt.Detect(img)
 		if usages == nil {
 			continue
 		}
-		log.Infof("Usage: %s", usages.String())
+		//log.Debugf("检测的用途: %s", usages.String())
 
 		var possibleUsage []*usagedt.Usage
 		for _, usage := range usages.Usages {
+			log.Infof("检测到使用情况: %s, 权重, %.2f, 原因: %s", usage.Usage, usage.Weight, usage.Reason)
 			if usage.Weight < viperx.GetFloat64("detect.threshold", 0.5) || !contains(usage.Usage) {
 				continue
 			}
+			log.Infof("需要报告使用情况: %s, 权重, %.2f, 原因: %s", usage.Usage, usage.Weight, usage.Reason)
 			lastDetectedAt = time.Now()
 			possibleUsage = append(possibleUsage, usage)
 		}

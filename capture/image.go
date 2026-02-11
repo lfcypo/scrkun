@@ -14,12 +14,12 @@ var imageLogger = logger.New("Image")
 func SaveImage(img *image.RGBA, path string) {
 	err := os.MkdirAll(filepath.Dir(path), 0750)
 	if err != nil {
-		imageLogger.Errorf("Failed to create directory: %v", err)
+		imageLogger.Errorf("创建临时目录失败: %v", err)
 	}
 
 	file, err := os.Create(path)
 	if err != nil {
-		imageLogger.Errorf("Failed to save image file to %s: %v", path, err)
+		imageLogger.Errorf("保存文件到 %s 失败: %v", path, err)
 		return
 	}
 	defer func(file *os.File) {
