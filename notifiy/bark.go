@@ -1,7 +1,6 @@
 package notifiy
 
 import (
-	"errors"
 	"sync"
 
 	"github.com/jzksnsjswkw/go-bark"
@@ -10,16 +9,16 @@ import (
 
 var doOnceInitBark = &sync.Once{}
 
-var token string
-var enable = false
+var barkToken string
+var barkEnable = false
 
 func init() {
 	doOnceInitBark.Do(func() {
 		if !viper.IsSet("bark.token") {
 			return
 		}
-		token = viper.GetString("bark.token")
-		enable = true
+		barkToken = viper.GetString("bark.token")
+		barkEnable = true
 	})
 }
 
@@ -27,13 +26,13 @@ type Bark struct {
 }
 
 func (b Bark) Notify(msg string) error {
-	if !enable {
-		return errors.New("bark notifier is disable by config")
+	if !barkEnable {
+		return Disable
 	}
 
 	err := bark.Push(&bark.Options{
 		Msg:   msg,
-		Token: token,
+		Token: barkToken,
 	})
 	return err
 }

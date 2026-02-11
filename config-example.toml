@@ -3,3 +3,6 @@ apikey = ""
 
 [bark]
 token = ""
+
+[xtuis]
+token = ""

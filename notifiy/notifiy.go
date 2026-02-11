@@ -1,6 +1,7 @@
 package notifiy
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -11,12 +12,15 @@ import (
 
 var log = logger.New("Notify")
 
+var Disable = fmt.Errorf("notifier disabled")
+
 type Notifier interface {
 	Notify(msg string) error
 }
 
 var notifiers = []Notifier{
 	&Bark{},
+	&Xtuis{},
 }
 
 func Notify(dts []*usagedt.Usage, machineName string) {
@@ -24,6 +28,9 @@ func Notify(dts []*usagedt.Usage, machineName string) {
 	for _, notifier := range notifiers {
 		err := notifier.Notify(msg)
 		if err != nil {
+			if errors.Is(err, Disable) {
+				continue
+			}
 			log.Warnf("Failed to notify: %v", err)
 		}
 	}

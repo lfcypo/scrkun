@@ -6,6 +6,7 @@ require (
 	github.com/gookit/color v1.6.0
 	github.com/jzksnsjswkw/go-bark v1.4.2
 	github.com/kbinani/screenshot v0.0.0-20250624051815-089614a94018
+	github.com/lfcypo/go-xtuis v0.0.1
 	github.com/lfcypo/viperx v0.0.0-20250208054716-bf1889d682b9
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/viper v1.21.0
