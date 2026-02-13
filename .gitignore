@@ -1,2 +1,6 @@
 .idea
 config.toml
+*.db
+tmp
+*.log
+scrkun
