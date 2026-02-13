@@ -6,6 +6,7 @@ import (
 	"image"
 	"io"
 	"net/http"
+	"strings"
 
 	"github.com/lfcypo/scrkun/capture"
 	"github.com/lfcypo/scrkun/logger"
@@ -124,6 +125,8 @@ func Detect(img *image.RGBA) *Result {
 		detectLogger.Warnf("choice[0].message.content 不是字符串")
 		return nil
 	}
+
+	content = strings.Trim(content, "`")
 
 	result := &Result{}
 	err = json.Unmarshal([]byte(content), &result)
