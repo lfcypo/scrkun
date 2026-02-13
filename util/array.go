@@ -10,3 +10,7 @@ func ContainsFunc[T comparable](list []T) func(T) bool {
 		return ok
 	}
 }
+
+func Contains[T comparable](list []T, e T) bool {
+	return ContainsFunc(list)(e)
+}

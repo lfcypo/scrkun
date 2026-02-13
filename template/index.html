@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>事件数据查询系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", "SimHei", Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: #303133;
+            line-height: 1.5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .page-title {
+            text-align: center;
+            margin-bottom: 24px;
+            color: #2c3e50;
+            font-size: 28px;
+            font-weight: 600;
+        }
+
+        .filter-card {
+            background: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.08);
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .filter-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            align-items: flex-end;
+            margin-bottom: 16px;
+        }
+
+        .filter-item {
+            flex: 1;
+            min-width: 200px;
+            position: relative;
+        }
+
+        .filter-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #606266;
+            font-size: 14px;
+        }
+
+        .filter-input, .filter-select {
+            width: 100%;
+            height: 40px;
+            padding: 0 12px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            font-size: 14px;
+            color: #303133;
+            background-color: #fff;
+            transition: border-color 0.2s;
+        }
+
+        .filter-input:focus, .filter-select:focus {
+            outline: none;
+            border-color: #409eff;
+        }
+
+        /* 时间输入框错误状态样式 */
+        .filter-input.error {
+            border-color: #f56c6c;
+        }
+
+        .multiselect {
+            width: 100%;
+            height: 40px;
+            position: relative;
+        }
+
+        .multiselect-header {
+            width: 100%;
+            height: 100%;
+            padding: 0 32px 0 12px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            font-size: 14px;
+            color: #303133;
+            background-color: #fff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            transition: border-color 0.2s;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .multiselect-header:hover {
+            border-color: #c0c4cc;
+        }
+
+        .multiselect.is-open .multiselect-header {
+            border-color: #409eff;
+            outline: none;
+        }
+
+        .multiselect-arrow {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%) rotate(0deg);
+            width: 0;
+            height: 0;
+            border-left: 4px solid transparent;
+            border-right: 4px solid transparent;
+            border-top: 5px solid #c0c4cc;
+            transition: transform 0.2s;
+            pointer-events: none;
+        }
+
+        .multiselect.is-open .multiselect-arrow {
+            transform: translateY(-50%) rotate(180deg);
+        }
+
+        .multiselect-dropdown {
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 0;
+            width: 100%;
+            max-height: 300px;
+            overflow-y: auto;
+            background: #fff;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+            z-index: 999;
+            display: none;
+            padding: 6px 0;
+        }
+
+        .multiselect.is-open .multiselect-dropdown {
+            display: block;
+        }
+
+        .multiselect-option {
+            padding: 0 12px;
+            height: 34px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .multiselect-option:hover {
+            background-color: #f5f7fa;
+        }
+
+        .multiselect-divider {
+            height: 1px;
+            background-color: #ebeef5;
+            margin: 4px 12px;
+        }
+
+        .custom-checkbox {
+            display: inline-flex;
+            align-items: center;
+            cursor: pointer;
+            font-size: 14px;
+            color: #606266;
+            user-select: none;
+            width: 100%;
+            height: 100%;
+        }
+
+        .custom-checkbox input {
+            display: none;
+        }
+
+        .checkbox-check {
+            width: 16px;
+            height: 16px;
+            border: 1px solid #dcdfe6;
+            border-radius: 2px;
+            background-color: #fff;
+            margin-right: 8px;
+            flex-shrink: 0;
+            position: relative;
+            transition: all 0.2s;
+        }
+
+        .custom-checkbox input:checked + .checkbox-check {
+            background-color: #409eff;
+            border-color: #409eff;
+        }
+
+        .custom-checkbox input:checked + .checkbox-check::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 4px;
+            height: 8px;
+            border: solid #fff;
+            border-width: 0 2px 2px 0;
+            transform: translate(-50%, -50%) rotate(45deg);
+        }
+
+        .custom-checkbox:hover .checkbox-check {
+            border-color: #409eff;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 8px;
+        }
+
+        .btn {
+            min-width: 100px;
+            height: 40px;
+            padding: 0 20px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background-color: #409eff;
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background-color: #66b1ff;
+        }
+
+        .btn-primary:disabled {
+            background-color: #a0cfff;
+            cursor: not-allowed;
+        }
+
+        .btn-default {
+            background-color: #fff;
+            color: #606266;
+            border: 1px solid #dcdfe6;
+        }
+
+        .btn-default:hover {
+            color: #409eff;
+            border-color: #c6e2ff;
+            background-color: #ecf5ff;
+        }
+
+        .result-card {
+            background: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.08);
+            padding: 24px;
+            overflow: hidden;
+        }
+
+        .result-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #303133;
+            margin-bottom: 16px;
+        }
+
+        .table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 1px solid #ebeef5;
+            font-size: 14px;
+            table-layout: auto;
+        }
+
+        .data-table thead {
+            background-color: #f5f7fa;
+        }
+
+        .data-table th {
+            padding: 12px 10px;
+            text-align: left;
+            border: 1px solid #ebeef5;
+            font-weight: 600;
+            color: #303133;
+            white-space: nowrap;
+        }
+
+        .data-table td {
+            padding: 12px 10px;
+            border: 1px solid #ebeef5;
+            color: #606266;
+            white-space: nowrap;
+        }
+
+        .data-table th:nth-child(6),
+        .data-table td:nth-child(6) {
+            max-width: 600px;
+            white-space: normal;
+            word-break: break-all;
+            word-wrap: break-word;
+        }
+
+        .data-table tbody tr {
+            transition: background-color 0.2s;
+        }
+
+        .data-table tbody tr:nth-child(even) {
+            background-color: #fafafa;
+        }
+
+        .data-table tbody tr:hover {
+            background-color: #f5f7fa;
+        }
+
+        .empty-tip, .loading-tip, .error-tip {
+            text-align: center;
+            padding: 40px 0;
+            color: #909399;
+            font-size: 14px;
+        }
+
+        .error-tip {
+            color: #f56c6c;
+        }
+
+        .loading-tip {
+            color: #409eff;
+        }
+
+        .tag-normal {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            background-color: #f0f9ff;
+            color: #67c23a;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+
+        .tag-abnormal {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            background-color: #fef0f0;
+            color: #f56c6c;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+
+        .tag-usage {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: nowrap;
+            font-weight: 500;
+        }
+
+        .tag-usage-0 {
+            background-color: #e8f3ff;
+            color: #1d4ed8;
+        }
+
+        .tag-usage-1 {
+            background-color: #ede9fe;
+            color: #5b21b6;
+        }
+
+        .tag-usage-2 {
+            background-color: #ecfeff;
+            color: #0e7490;
+        }
+
+        .tag-usage-3 {
+            background-color: #fff7ed;
+            color: #c2410c;
+        }
+
+        .tag-usage-4 {
+            background-color: #f0fdfa;
+            color: #0f766e;
+        }
+
+        .tag-usage-5 {
+            background-color: #eff6ff;
+            color: #2563eb;
+        }
+
+        .tag-usage-6 {
+            background-color: #fdf2f8;
+            color: #be185d;
+        }
+
+        .tag-usage-7 {
+            background-color: #f3f4f6;
+            color: #4b5563;
+        }
+
+        .tag-usage-unknown {
+            background-color: #ecf5ff;
+            color: #409eff;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            .filter-card, .result-card {
+                padding: 16px;
+            }
+            .filter-item {
+                min-width: 100%;
+            }
+            .btn {
+                flex: 1;
+            }
+            .page-title {
+                font-size: 22px;
+            }
+            .data-table th:nth-child(6),
+            .data-table td:nth-child(6) {
+                max-width: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1 class="page-title">电教平台AI智能监控系统 查询平台</h1>
+    <div class="filter-card">
+        <div class="filter-row">
+            <div class="filter-item">
+                <label class="filter-label">开始时间</label>
+                <input type="datetime-local" class="filter-input" id="startTime">
+            </div>
+            <div class="filter-item">
+                <label class="filter-label">结束时间</label>
+                <input type="datetime-local" class="filter-input" id="endTime">
+            </div>
+            <div class="filter-item">
+                <label class="filter-label">事件类型</label>
+                <select class="filter-select" id="eventType">
+                    <option value="-1">全部</option>
+                    <option value="0">正常事件</option>
+                    <option value="1">异常事件</option>
+                </select>
+            </div>
+            <div class="filter-item">
+                <label class="filter-label">用法类型（可多选）</label>
+                <div class="multiselect" id="usageMultiselect">
+                    <div class="multiselect-header" id="multiselectHeader">
+                        <span id="multiselectText">全部</span>
+                    </div>
+                    <i class="multiselect-arrow"></i>
+                    <div class="multiselect-dropdown" id="multiselectDropdown">
+                        <div class="multiselect-option">
+                            <label class="custom-checkbox">
+                                <input type="checkbox" id="usageAll" value="-1">
+                                <span class="checkbox-check"></span>
+                                <span>全选</span>
+                            </label>
+                        </div>
+                        <div class="multiselect-divider"></div>
+                        <div class="multiselect-option">
+                            <label class="custom-checkbox">
+                                <input type="checkbox" name="usageType" value="0">
+                                <span class="checkbox-check"></span>
+                                <span>学习知识</span>
+                            </label>
+                        </div>
+                        <div class="multiselect-option">
+                            <label class="custom-checkbox">
+                                <input type="checkbox" name="usageType" value="1">
+                                <span class="checkbox-check"></span>
+                                <span>写代码或进行编程任务</span>
+                            </label>
+                        </div>
+                        <div class="multiselect-option">
+                            <label class="custom-checkbox">
+                                <input type="checkbox" name="usageType" value="2">
+                                <span class="checkbox-check"></span>
+                                <span>观看视频</span>
+                            </label>
+                        </div>
+                        <div class="multiselect-option">
+                            <label class="custom-checkbox">
+                                <input type="checkbox" name="usageType" value="3">
+                                <span class="checkbox-check"></span>
+                                <span>玩游戏或查看相关内容</span>
+                            </label>
+                        </div>
+                        <div class="multiselect-option">
+                            <label class="custom-checkbox">
+                                <input type="checkbox" name="usageType" value="4">
+                                <span class="checkbox-check"></span>
+                                <span>文件编辑</span>
+                            </label>
+                        </div>
+                        <div class="multiselect-option">
+                            <label class="custom-checkbox">
+                                <input type="checkbox" name="usageType" value="5">
+                                <span class="checkbox-check"></span>
+                                <span>浏览网页</span>
+                            </label>
+                        </div>
+                        <div class="multiselect-option">
+                            <label class="custom-checkbox">
+                                <input type="checkbox" name="usageType" value="6">
+                                <span class="checkbox-check"></span>
+                                <span>阅读小说</span>
+                            </label>
+                        </div>
+                        <div class="multiselect-option">
+                            <label class="custom-checkbox">
+                                <input type="checkbox" name="usageType" value="7">
+                                <span class="checkbox-check"></span>
+                                <span>闲置</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="btn-group">
+            <button class="btn btn-primary" id="queryBtn">查询数据</button>
+            <button class="btn btn-default" id="resetBtn">重置筛选</button>
+        </div>
+    </div>
+    <div class="result-card">
+        <h2 class="result-title">查询结果</h2>
+        <div id="resultBox">
+            <div class="loading-tip">页面初始化中，正在加载当日数据...</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    var EVENT_TYPE_MAP = {
+        0: { text: '正常事件', tag: 'tag-normal' },
+        1: { text: '异常事件', tag: 'tag-abnormal' }
+    };
+
+    var USAGE_TYPE_MAP = {
+        0: '学习知识',
+        1: '写代码或进行编程任务',
+        2: '观看视频',
+        3: '玩游戏或查看相关内容',
+        4: '文件编辑',
+        5: '浏览网页',
+        6: '阅读小说',
+        7: '闲置'
+    };
+
+    var API_URL = '/api/data';
+    var originalData = [];
+
+    function formatTime(timeStr) {
+        if (!timeStr) return '-';
+        var date = new Date(timeStr);
+        if (isNaN(date.getTime())) return timeStr;
+
+        var year = date.getFullYear();
+        var month = padZero(date.getMonth() + 1);
+        var day = padZero(date.getDate());
+        var hours = padZero(date.getHours());
+        var minutes = padZero(date.getMinutes());
+        var seconds = padZero(date.getSeconds());
+
+        return year + '-' + month + '-' + day + ' ' + hours + ':' + minutes + ':' + seconds;
+    }
+
+    function padZero(num) {
+        return num < 10 ? '0' + num : num;
+    }
+
+    function formatDateTimeLocal(date) {
+        var year = date.getFullYear();
+        var month = padZero(date.getMonth() + 1);
+        var day = padZero(date.getDate());
+        var hours = padZero(date.getHours());
+        var minutes = padZero(date.getMinutes());
+        return year + '-' + month + '-' + day + 'T' + hours + ':' + minutes;
+    }
+
+    function setDefaultDateTime() {
+        var todayStart = new Date();
+        todayStart.setHours(0, 0, 0, 0);
+        var now = new Date();
+
+        document.getElementById('startTime').value = formatDateTimeLocal(todayStart);
+        document.getElementById('endTime').value = formatDateTimeLocal(now);
+        clearTimeErrorStyle();
+    }
+
+    function escapeHtml(str) {
+        if (str == null || str === '') return '-';
+        str = String(str);
+        return str
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;')
+            .replace(/`/g, '&#96;');
+    }
+
+    function validateTimeRange() {
+        var startTimeInput = document.getElementById('startTime');
+        var endTimeInput = document.getElementById('endTime');
+        var startTimeVal = startTimeInput.value;
+        var endTimeVal = endTimeInput.value;
+        var resultBox = document.getElementById('resultBox');
+
+        if (startTimeVal && endTimeVal) {
+            var startTimeStamp = new Date(startTimeVal).getTime();
+            var endTimeStamp = new Date(endTimeVal).getTime();
+
+            if (startTimeStamp > endTimeStamp) {
+                startTimeInput.classList.add('error');
+                endTimeInput.classList.add('error');
+                resultBox.innerHTML = '<div class="error-tip">时间范围错误：开始时间不能晚于结束时间，请重新选择</div>';
+                return false;
+            }
+        }
+
+        clearTimeErrorStyle();
+        return true;
+    }
+
+    function clearTimeErrorStyle() {
+        document.getElementById('startTime').classList.remove('error');
+        document.getElementById('endTime').classList.remove('error');
+    }
+
+    function updateMultiselectText() {
+        var allCheckbox = document.getElementById('usageAll');
+        var itemCheckboxes = document.querySelectorAll('input[name="usageType"]');
+        var checkedCount = document.querySelectorAll('input[name="usageType"]:checked').length;
+        var totalCount = itemCheckboxes.length;
+        var textElement = document.getElementById('multiselectText');
+
+        if (allCheckbox.checked || checkedCount === totalCount) {
+            textElement.innerText = '全部';
+        } else if (checkedCount === 0) {
+            textElement.innerText = '请选择';
+        } else {
+            textElement.innerText = '已选择 ' + checkedCount + ' 项';
+        }
+    }
+
+    function initMultiselectToggle() {
+        var multiselect = document.getElementById('usageMultiselect');
+        var header = document.getElementById('multiselectHeader');
+        var dropdown = document.getElementById('multiselectDropdown');
+
+        header.addEventListener('click', function(e) {
+            e.stopPropagation();
+            multiselect.classList.toggle('is-open');
+        });
+
+        dropdown.addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+
+        document.addEventListener('click', function() {
+            multiselect.classList.remove('is-open');
+        });
+    }
+
+    function initUsageCheckboxEvent() {
+        var allCheckbox = document.getElementById('usageAll');
+        var itemCheckboxes = document.querySelectorAll('input[name="usageType"]');
+
+        allCheckbox.addEventListener('change', function() {
+            var isChecked = this.checked;
+            for (var i = 0; i < itemCheckboxes.length; i++) {
+                itemCheckboxes[i].checked = isChecked;
+            }
+            updateMultiselectText();
+            fetchData();
+        });
+
+        for (var i = 0; i < itemCheckboxes.length; i++) {
+            itemCheckboxes[i].addEventListener('change', function() {
+                var totalCount = itemCheckboxes.length;
+                var checkedCount = document.querySelectorAll('input[name="usageType"]:checked').length;
+                allCheckbox.checked = totalCount === checkedCount;
+                updateMultiselectText();
+                fetchData();
+            });
+        }
+    }
+
+    function resetUsageCheckbox() {
+        var allCheckbox = document.getElementById('usageAll');
+        var itemCheckboxes = document.querySelectorAll('input[name="usageType"]');
+
+        allCheckbox.checked = true;
+        for (var i = 0; i < itemCheckboxes.length; i++) {
+            itemCheckboxes[i].checked = true;
+        }
+        updateMultiselectText();
+    }
+
+    function getSelectedUsageTypes() {
+        var checkedItems = document.querySelectorAll('input[name="usageType"]:checked');
+        var result = [];
+        for (var i = 0; i < checkedItems.length; i++) {
+            result.push(parseInt(checkedItems[i].value));
+        }
+        return result;
+    }
+
+    function filterData(data, filters) {
+        return data.filter(function(item) {
+            if (filters.eventType !== -1 && item.eventType !== filters.eventType) {
+                return false;
+            }
+
+            if (filters.usageTypeList.length > 0 && filters.usageTypeList.indexOf(item.usageType) === -1) {
+                return false;
+            }
+
+            var itemTimeStamp = new Date(item.time).getTime();
+            if (isNaN(itemTimeStamp)) return false;
+
+            if (filters.startTime) {
+                var startTimeStamp = new Date(filters.startTime).getTime();
+                if (!isNaN(startTimeStamp) && itemTimeStamp < startTimeStamp) {
+                    return false;
+                }
+            }
+
+            if (filters.endTime) {
+                var endTimeStamp = new Date(filters.endTime).getTime();
+                if (!isNaN(endTimeStamp) && itemTimeStamp > endTimeStamp) {
+                    return false;
+                }
+            }
+
+            return true;
+        });
+    }
+
+    function renderTable(data) {
+        var resultBox = document.getElementById('resultBox');
+
+        if (!data || data.length === 0) {
+            resultBox.innerHTML = '<div class="empty-tip">暂无匹配的数据</div>';
+            return;
+        }
+
+        var tableHtml = '<div class="table-wrapper"><table class="data-table">';
+
+        tableHtml += '<thead><tr>';
+        tableHtml += '<th>序号</th>';
+        tableHtml += '<th>事件时间</th>';
+        tableHtml += '<th>事件类型</th>';
+        tableHtml += '<th>用法类型</th>';
+        tableHtml += '<th>准确度</th>';
+        tableHtml += '<th>判断原因</th>';
+        tableHtml += '</tr></thead>';
+
+        tableHtml += '<tbody>';
+        for (var i = 0; i < data.length; i++) {
+            var item = data[i];
+            var eventTypeInfo = EVENT_TYPE_MAP[item.eventType] || { text: '未知类型', tag: '' };
+            var usageTypeText = USAGE_TYPE_MAP[item.usageType] || '未知类型';
+            var usageTagClass = USAGE_TYPE_MAP[item.usageType] ? 'tag-usage tag-usage-' + item.usageType : 'tag-usage tag-usage-unknown';
+
+            tableHtml += '<tr>';
+            tableHtml += '<td>' + (i + 1) + '</td>';
+            tableHtml += '<td>' + formatTime(item.time) + '</td>';
+            tableHtml += '<td><span class="' + eventTypeInfo.tag + '">' + eventTypeInfo.text + '</span></td>';
+            tableHtml += '<td><span class="' + usageTagClass + '">' + usageTypeText + '</span></td>';
+            tableHtml += '<td>' + (item.weight || 0) + '</td>';
+            tableHtml += '<td>' + escapeHtml(item.reason) + '</td>';
+            tableHtml += '</tr>';
+        }
+        tableHtml += '</tbody></table></div>';
+
+        resultBox.innerHTML = tableHtml;
+    }
+
+    function getFilters() {
+        return {
+            startTime: document.getElementById('startTime').value,
+            endTime: document.getElementById('endTime').value,
+            eventType: parseInt(document.getElementById('eventType').value),
+            usageTypeList: getSelectedUsageTypes()
+        };
+    }
+
+    function fetchData() {
+        if (!validateTimeRange()) {
+            console.warn('时间范围校验不通过，终止查询');
+            return;
+        }
+
+        var queryBtn = document.getElementById('queryBtn');
+        var resultBox = document.getElementById('resultBox');
+
+        queryBtn.disabled = true;
+        queryBtn.innerText = '查询中...';
+        resultBox.innerHTML = '<div class="loading-tip">正在加载数据，请稍候...</div>';
+
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', API_URL, true);
+        xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
+
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4) {
+                queryBtn.disabled = false;
+                queryBtn.innerText = '查询数据';
+
+                if (xhr.status === 200) {
+                    try {
+                        var res = JSON.parse(xhr.responseText);
+                        originalData = res.data || [];
+                        originalData.sort(function(a, b) {
+                            return new Date(b.time).getTime() - new Date(a.time).getTime();
+                        });
+                        var filters = getFilters();
+                        var filteredData = filterData(originalData, filters);
+                        renderTable(filteredData);
+                    } catch (e) {
+                        resultBox.innerHTML = '<div class="error-tip">数据解析失败：' + e.message + '</div>';
+                        console.error('数据解析错误', e);
+                    }
+                } else {
+                    resultBox.innerHTML = '<div class="error-tip">请求失败，状态码：' + xhr.status + '，请检查后端接口是否正常</div>';
+                    console.error('接口请求错误', xhr.status, xhr.responseText);
+                }
+            }
+        };
+
+        xhr.onerror = function() {
+            queryBtn.disabled = false;
+            queryBtn.innerText = '查询数据';
+            resultBox.innerHTML = '<div class="error-tip">网络请求失败，请检查程序是否在正常运行</div>';
+        };
+
+        xhr.send(JSON.stringify({}));
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        initMultiselectToggle();
+        initUsageCheckboxEvent();
+        setDefaultDateTime();
+        resetUsageCheckbox();
+        fetchData();
+
+        document.getElementById('queryBtn').addEventListener('click', fetchData);
+
+        document.getElementById('resetBtn').addEventListener('click', function() {
+            setDefaultDateTime();
+            document.getElementById('eventType').value = '-1';
+            resetUsageCheckbox();
+            fetchData();
+        });
+
+        document.getElementById('startTime').addEventListener('change', function() {
+            validateTimeRange();
+            fetchData();
+        });
+        document.getElementById('endTime').addEventListener('change', function() {
+            validateTimeRange();
+            fetchData();
+        });
+
+        document.getElementById('eventType').addEventListener('change', fetchData);
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                fetchData();
+            }
+        });
+    });
+</script>
+</body>
+</html>

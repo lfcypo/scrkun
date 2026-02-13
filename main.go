@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -10,14 +11,19 @@ import (
 	"github.com/lfcypo/scrkun/capture"
 	_ "github.com/lfcypo/scrkun/config"
 	"github.com/lfcypo/scrkun/logger"
+	"github.com/lfcypo/scrkun/model"
 	"github.com/lfcypo/scrkun/notifiy"
+	"github.com/lfcypo/scrkun/server"
+	"github.com/lfcypo/scrkun/store"
 	"github.com/lfcypo/scrkun/usagedt"
 	"github.com/lfcypo/scrkun/util"
 	"github.com/lfcypo/viperx"
 	"github.com/spf13/viper"
+	"gorm.io/gorm"
 )
 
 var log = logger.New("Main")
+var storeLog = logger.New("Store")
 
 var shouldNotifyUsage = []string{
 	"video",
@@ -25,13 +31,19 @@ var shouldNotifyUsage = []string{
 	"novel",
 }
 
-var contains = util.ContainsFunc(shouldNotifyUsage)
+var db = store.GetDatabase()
+var abnormal = util.ContainsFunc(shouldNotifyUsage)
 
 func main() {
 
 	if runtime.GOOS == "windows" {
 		logger.DisableColor()
 		log.Infof("本环境不支持彩色日志输出 已自动降级为普通输出")
+	}
+
+	go server.StartWebServer(viperx.GetInt("server.port", 8890))
+	if util.Contains(os.Args, "-q") {
+		select {}
 	}
 
 	sleep := time.Duration(viperx.GetInt("monitor.sleep", 5))
@@ -66,13 +78,25 @@ func main() {
 
 		var possibleUsage []*usagedt.Usage
 		for _, usage := range usages.Usages {
-			log.Infof("检测到使用情况: %s, 权重, %.2f, 原因: %s", usage.Usage, usage.Weight, usage.Reason)
-			if usage.Weight < viperx.GetFloat64("detect.threshold", 0.5) || !contains(usage.Usage) {
+			if usage.Weight < viperx.GetFloat64("detect.threshold", 0.5) {
 				continue
 			}
-			log.Infof("需要报告使用情况: %s, 权重, %.2f, 原因: %s", usage.Usage, usage.Weight, usage.Reason)
-			lastDetectedAt = time.Now()
-			possibleUsage = append(possibleUsage, usage)
+
+			event := model.NewEvent(model.ConvToUsageType(usage.Usage), usage.Reason, usage.Weight, "")
+			log.Infof("检测到使用情况: %s, 权重, %.2f, 原因: %s", usage.Usage, usage.Weight, usage.Reason)
+			if abnormal(usage.Usage) {
+				log.Infof("需要报告使用情况: %s, 权重, %.2f, 原因: %s", usage.Usage, usage.Weight, usage.Reason)
+				lastDetectedAt = time.Now()
+				possibleUsage = append(possibleUsage, usage)
+				event.AbnormalEvent()
+			} else {
+				event.NormalEvent()
+			}
+			err := gorm.G[model.Event](db).Create(context.Background(), event)
+			if err != nil {
+				storeLog.Errorf("保存事件失败: %v", err)
+			}
+			storeLog.Info("保存事件成功")
 		}
 
 		if len(possibleUsage) > 0 {
