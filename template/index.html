@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>事件数据查询系统</title>
+    <title>电教平台AI智能监控系统 查询平台</title>
     <style>
         * {
             margin: 0;
@@ -430,18 +430,23 @@
             body {
                 padding: 10px;
             }
+
             .filter-card, .result-card {
                 padding: 16px;
             }
+
             .filter-item {
                 min-width: 100%;
             }
+
             .btn {
                 flex: 1;
             }
+
             .page-title {
                 font-size: 22px;
             }
+
             .data-table th:nth-child(6),
             .data-table td:nth-child(6) {
                 max-width: 300px;
@@ -561,8 +566,8 @@
 
 <script>
     var EVENT_TYPE_MAP = {
-        0: { text: '正常事件', tag: 'tag-normal' },
-        1: { text: '异常事件', tag: 'tag-abnormal' }
+        0: {text: '正常事件', tag: 'tag-normal'},
+        1: {text: '异常事件', tag: 'tag-abnormal'}
     };
 
     var USAGE_TYPE_MAP = {
@@ -678,16 +683,16 @@
         var header = document.getElementById('multiselectHeader');
         var dropdown = document.getElementById('multiselectDropdown');
 
-        header.addEventListener('click', function(e) {
+        header.addEventListener('click', function (e) {
             e.stopPropagation();
             multiselect.classList.toggle('is-open');
         });
 
-        dropdown.addEventListener('click', function(e) {
+        dropdown.addEventListener('click', function (e) {
             e.stopPropagation();
         });
 
-        document.addEventListener('click', function() {
+        document.addEventListener('click', function () {
             multiselect.classList.remove('is-open');
         });
     }
@@ -696,7 +701,7 @@
         var allCheckbox = document.getElementById('usageAll');
         var itemCheckboxes = document.querySelectorAll('input[name="usageType"]');
 
-        allCheckbox.addEventListener('change', function() {
+        allCheckbox.addEventListener('change', function () {
             var isChecked = this.checked;
             for (var i = 0; i < itemCheckboxes.length; i++) {
                 itemCheckboxes[i].checked = isChecked;
@@ -706,7 +711,7 @@
         });
 
         for (var i = 0; i < itemCheckboxes.length; i++) {
-            itemCheckboxes[i].addEventListener('change', function() {
+            itemCheckboxes[i].addEventListener('change', function () {
                 var totalCount = itemCheckboxes.length;
                 var checkedCount = document.querySelectorAll('input[name="usageType"]:checked').length;
                 allCheckbox.checked = totalCount === checkedCount;
@@ -737,7 +742,7 @@
     }
 
     function filterData(data, filters) {
-        return data.filter(function(item) {
+        return data.filter(function (item) {
             if (filters.eventType !== -1 && item.eventType !== filters.eventType) {
                 return false;
             }
@@ -789,7 +794,7 @@
         tableHtml += '<tbody>';
         for (var i = 0; i < data.length; i++) {
             var item = data[i];
-            var eventTypeInfo = EVENT_TYPE_MAP[item.eventType] || { text: '未知类型', tag: '' };
+            var eventTypeInfo = EVENT_TYPE_MAP[item.eventType] || {text: '未知类型', tag: ''};
             var usageTypeText = USAGE_TYPE_MAP[item.usageType] || '未知类型';
             var usageTagClass = USAGE_TYPE_MAP[item.usageType] ? 'tag-usage tag-usage-' + item.usageType : 'tag-usage tag-usage-unknown';
 
@@ -833,7 +838,7 @@
         xhr.open('POST', API_URL, true);
         xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
 
-        xhr.onreadystatechange = function() {
+        xhr.onreadystatechange = function () {
             if (xhr.readyState === 4) {
                 queryBtn.disabled = false;
                 queryBtn.innerText = '查询数据';
@@ -842,7 +847,7 @@
                     try {
                         var res = JSON.parse(xhr.responseText);
                         originalData = res.data || [];
-                        originalData.sort(function(a, b) {
+                        originalData.sort(function (a, b) {
                             return new Date(b.time).getTime() - new Date(a.time).getTime();
                         });
                         var filters = getFilters();
@@ -859,7 +864,7 @@
             }
         };
 
-        xhr.onerror = function() {
+        xhr.onerror = function () {
             queryBtn.disabled = false;
             queryBtn.innerText = '查询数据';
             resultBox.innerHTML = '<div class="error-tip">网络请求失败，请检查程序是否在正常运行</div>';
@@ -868,7 +873,7 @@
         xhr.send(JSON.stringify({}));
     }
 
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         initMultiselectToggle();
         initUsageCheckboxEvent();
         setDefaultDateTime();
@@ -877,25 +882,25 @@
 
         document.getElementById('queryBtn').addEventListener('click', fetchData);
 
-        document.getElementById('resetBtn').addEventListener('click', function() {
+        document.getElementById('resetBtn').addEventListener('click', function () {
             setDefaultDateTime();
             document.getElementById('eventType').value = '-1';
             resetUsageCheckbox();
             fetchData();
         });
 
-        document.getElementById('startTime').addEventListener('change', function() {
+        document.getElementById('startTime').addEventListener('change', function () {
             validateTimeRange();
             fetchData();
         });
-        document.getElementById('endTime').addEventListener('change', function() {
+        document.getElementById('endTime').addEventListener('change', function () {
             validateTimeRange();
             fetchData();
         });
 
         document.getElementById('eventType').addEventListener('change', fetchData);
 
-        document.addEventListener('keydown', function(e) {
+        document.addEventListener('keydown', function (e) {
             if (e.key === 'Enter') {
                 fetchData();
             }
