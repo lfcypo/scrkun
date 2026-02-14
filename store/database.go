@@ -3,9 +3,9 @@ package store
 import (
 	"sync"
 
+	"github.com/glebarez/sqlite"
 	"github.com/lfcypo/scrkun/logger"
 	"github.com/lfcypo/viperx"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
@@ -24,6 +24,7 @@ func _initDatabase() {
 	dsn := viperx.GetString("db.path", "data.db")
 	dial := sqlite.Open(dsn)
 	config := &gorm.Config{}
+
 	dbInner, err := gorm.Open(dial, config)
 	if err != nil {
 		databaseLog.Errorf("初始化数据库失败: %v", err)
