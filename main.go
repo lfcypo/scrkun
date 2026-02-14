@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"runtime"
 	"time"
 
 	"github.com/lfcypo/scrkun/capture"
@@ -36,10 +35,7 @@ var abnormal = util.ContainsFunc(shouldNotifyUsage)
 
 func main() {
 
-	if runtime.GOOS == "windows" {
-		logger.DisableColor()
-		log.Infof("本环境不支持彩色日志输出 已自动降级为普通输出")
-	}
+	logger.DisableColor()
 
 	go server.StartWebServer(viperx.GetInt("server.port", 8890))
 	if util.Contains(os.Args, "-q") {
