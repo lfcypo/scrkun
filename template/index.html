@@ -615,10 +615,12 @@
     function setDefaultDateTime() {
         var todayStart = new Date();
         todayStart.setHours(0, 0, 0, 0);
-        var now = new Date();
+
+        var todayEnd = new Date();
+        todayEnd.setHours(23, 59, 59, 999);
 
         document.getElementById('startTime').value = formatDateTimeLocal(todayStart);
-        document.getElementById('endTime').value = formatDateTimeLocal(now);
+        document.getElementById('endTime').value = formatDateTimeLocal(todayEnd);
         clearTimeErrorStyle();
     }
 
