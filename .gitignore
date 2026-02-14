@@ -4,3 +4,5 @@ config.toml
 tmp
 *.log
 scrkun
+build
+
