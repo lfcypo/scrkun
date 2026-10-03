@@ -103,7 +103,7 @@ GET /api/data
 ## 通知配置
 
 - **Bark**：在 `bark.token` 中填写 Bark Token，通知会通过 Bark 推送。
-- **虾推啥**：按照[使用指南](docs/setup.md)获取 Token 并填入 `xtuis.token`，通知会发送到绑定的微信。
+- **虾推啥**：关注「虾推啥」微信公众号，复制收到的 Token 并填入 `xtuis.token`，通知会发送到绑定的微信。
 
 两个渠道可以同时启用。程序仅在活动类型为视频、游戏或小说时发送通知。
 
@@ -138,3 +138,7 @@ server/    查询网页与 HTTP API
 store/     SQLite 数据库
 usagedt/   截图活动识别及 DashScope 请求
 ```
+
+## 许可证
+
+本项目采用 [MIT License](LICENSE)。
